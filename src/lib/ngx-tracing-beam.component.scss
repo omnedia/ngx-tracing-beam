@@ -1,0 +1,49 @@
+.om-tracing-beam {
+  --om-tracing-beam-stroke-color: #9091a04b;
+
+  position: relative;
+  width: 100%;
+  padding: 0 2.5rem;
+  height: 100%;
+  overflow: hidden;
+
+  .om-tracing-beam-beam {
+    position: absolute;
+    left: -1rem;
+    top: 0.75rem;
+  }
+
+  .beam-dot {
+    margin-left: 27px;
+    height: 1rem;
+    width: 1rem;
+    border-radius: 9999px;
+    border: 1px solid var(--om-tracing-beam-stroke-color);
+    box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .beam-dot-active {
+    box-shadow: none;
+  }
+
+  .beam-inner-dot {
+    height: 0.5rem;
+    width: 0.5rem;
+    border-radius: 9999px;
+    border: 1px solid var(--om-tracing-beam-stroke-color);
+    background-color: var(--om-tracing-beam-stroke-color);
+  }
+
+  .beam-inner-dot-active {
+    background-color: #10b981;
+    border-color: #059669;
+  }
+
+  .beam-svg {
+    margin-left: 1rem;
+    display: block;
+  }
+}

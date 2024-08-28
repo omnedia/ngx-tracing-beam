@@ -1,0 +1,64 @@
+<div
+  class="om-tracing-beam"
+  #wrapperRef
+  [ngClass]="styleClass"
+  [ngStyle]="style"
+>
+  <div class="om-tracing-beam-beam">
+    <div
+      class="beam-dot"
+      [ngClass]="{
+        'beam-dot-active': y1 > 50
+      }"
+    >
+      <div
+        class="beam-inner-dot"
+        [ngClass]="{
+          'beam-inner-dot-active': y1 > 50
+        }"
+      ></div>
+    </div>
+
+    <svg
+      [attr.viewBox]="'0 0 20 ' + svgHeight"
+      [attr.height]="svgHeight"
+      class="beam-svg"
+      aria-hidden="true"
+    >
+      <path
+        [attr.d]="'M 1 0V -36 l 18 24 V ' + (svgHeight - 34) + ' l -18 24V '"
+        fill="none"
+        [attr.stroke]="strokeColor"
+        stroke-opacity="1"
+      ></path>
+      <path
+        [attr.d]="'M 1 0V -36 l 18 24 V ' + (svgHeight - 34) + ' l -18 24V '"
+        fill="none"
+        stroke="url(#gradient)"
+        stroke-width="1.25"
+      ></path>
+      <defs>
+        <linearGradient
+          id="gradient"
+          gradientUnits="userSpaceOnUse"
+          [attr.x1]="0"
+          [attr.x2]="0"
+          [attr.y1]="y1"
+          [attr.y2]="y2"
+        >
+          <stop [attr.stop-color]="gradientBottom" stop-opacity="0"></stop>
+          <stop [attr.stop-color]="gradientBottom"></stop>
+          <stop offset="0.325" [attr.stop-color]="gradientMiddle"></stop>
+          <stop
+            offset="1"
+            [attr.stop-color]="gradientTop"
+            stop-opacity="0"
+          ></stop>
+        </linearGradient>
+      </defs>
+    </svg>
+  </div>
+  <div class="om-tracing-beam-content" #contentRef>
+    <ng-content></ng-content>
+  </div>
+</div>

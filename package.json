@@ -1,0 +1,25 @@
+{
+  "name": "@omnedia/ngx-tracing-beam",
+  "description": "A simple component library to add an animated tracing beam to your vertical scrolling.",
+  "version": "1.0.0",
+  "peerDependencies": {
+    "@angular/common": "^18.2.0",
+    "@angular/core": "^18.2.0"
+  },
+  "dependencies": {
+    "tslib": "^2.3.0"
+  },
+  "sideEffects": false,
+  "keywords": [
+    "npm",
+    "scroll",
+    "tracing",
+    "beam",
+    "animation"
+  ],
+  "repository": {
+    "url": "https://github.com/omnedia/ngx-tracing-beam"
+  },
+  "author": "Markus Block (markus.block@omnedia.com)",
+  "license": "MIT"
+}
