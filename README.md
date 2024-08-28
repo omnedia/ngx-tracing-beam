@@ -1,24 +1,134 @@
-# NgxTracingBeam
+# ngx-tracing-beam
 
-This library was generated with [Angular CLI](https://github.com/angular/angular-cli) version 18.2.0.
+`@omnedia/ngx-tracing-beam` is an Angular component that renders a dynamic tracing beam that follows the user's scroll progress. This component is ideal for visually connecting different sections of content on a page, providing an interactive and engaging user experience.
 
-## Code scaffolding
+## Features
 
-Run `ng generate component component-name --project ngx-tracing-beam` to generate a new component. You can also use `ng generate directive|pipe|service|class|guard|interface|enum|module --project ngx-tracing-beam`.
-> Note: Don't forget to add `--project ngx-tracing-beam` or else it will be added to the default project in your `angular.json` file. 
+- Interactive Tracing Beam: The beam dynamically traces a path as the user scrolls, visually connecting different sections of your content.
+- Customizable Appearance: Control the beam's stroke color, gradient colors, and animation duration to match your design needs.
+- Smooth Animations: The tracing beam animates smoothly as the user scrolls, with customizable easing functions to control the motion.
+- Viewport Awareness: The beam's position updates in response to scrolling and resizing, ensuring it always stays aligned with your content.
 
-## Build
+## Installation
 
-Run `ng build ngx-tracing-beam` to build the project. The build artifacts will be stored in the `dist/` directory.
+Install the library using npm:
 
-## Publishing
+```bash
+npm install @omnedia/ngx-tracing-beam
+```
 
-After building your library with `ng build ngx-tracing-beam`, go to the dist folder `cd dist/ngx-tracing-beam` and run `npm publish`.
+## Usage
 
-## Running unit tests
+Import the `NgxTracingBeamComponent` in your Angular module or component:
 
-Run `ng test ngx-tracing-beam` to execute the unit tests via [Karma](https://karma-runner.github.io).
+```typescript
+import { NgxTracingBeamComponent } from '@omnedia/ngx-tracing-beam';
 
-## Further help
+@Component({
+  ...
+  imports: [
+    ...
+    NgxTracingBeamComponent,
+  ],
+  ...
+})
+```
 
-To get more help on the Angular CLI use `ng help` or go check out the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+Use the component in your template:
+
+```html
+<om-tracing-beam
+  [strokeColor]="'#3498db'"
+  [gradientTop]="'#ffcc00'"
+  [gradientMiddle]="'#e74c3c'"
+  [gradientBottom]="'#9b59b6'"
+  [animationDuration]="700"
+  styleClass="custom-tracing-beam"
+>
+  <div class="content-section">
+    <h2>Section 1</h2>
+    <p>Your content here...</p>
+  </div>
+  <div class="content-section">
+    <h2>Section 2</h2>
+    <p>Your content here...</p>
+  </div>
+</om-tracing-beam>
+```
+
+## How It Works
+
+- Tracing Beam: The component draws a beam that moves as the user scrolls, visually linking content sections. The beam's path is automatically calculated based on the position and size of your content.
+- Customizable Stroke and Gradient: Define the stroke color and gradient colors for the beam, giving you full control over its appearance.
+- Smooth Scroll Animation: The beam's movement is smoothly animated, with the ability to customize the animation duration and easing function for a more tailored experience.
+
+## API
+
+```html
+<om-tracing-beam
+  [strokeColor]="strokeColor"
+  [gradientTop]="gradientTop"
+  [gradientMiddle]="gradientMiddle"
+  [gradientBottom]="gradientBottom"
+  [animationDuration]="animationDuration"
+  [easingFunction]="easingFunction"
+  styleClass="your-custom-class"
+>
+  <ng-content></ng-content>
+</om-tracing-beam>
+```
+
+- `strokeColor` (optional): The color of the beam's stroke. Defaults to '#9091a04b'.
+- `gradientTop` (optional): The color at the top of the gradient. Defaults to '#AE48FF'.
+- `gradientMiddle` (optional): The color at the middle of the gradient. Defaults to '#6344F5'.
+- `gradientBottom` (optional): The color at the bottom of the gradient. Defaults to '#18CCFC'.
+- `animationDuration` (optional): The duration of the beam's animation in milliseconds. Defaults to 500ms.
+- `easingFunction` (optional): A custom easing function for the animation. Defaults to a cubic easing function.
+- `styleClass` (optional): Custom CSS class to apply to the .om-tracing-beam container.
+
+## Example
+
+```html
+<om-tracing-beam [strokeColor]="'#e74c3c'" [gradientTop]="'#3498db'" [gradientMiddle]="'#2ecc71'" [gradientBottom]="'#9b59b6'">
+  <div class="content">
+    <h2>Scroll-Linked Content</h2>
+    <p>This content is linked with a dynamic tracing beam that follows the scroll progress.</p>
+  </div>
+</om-tracing-beam>
+```
+
+This example creates a tracing beam with a red stroke and a blue-to-purple gradient that animates as the user scrolls through the content.
+
+## Styling
+
+```html
+<om-tracing-beam styleClass="custom-beam-style">
+  <div class="content">
+    <h2>Styled Tracing Beam</h2>
+    <p>Customize the beam with your own styles.</p>
+  </div>
+</om-tracing-beam>
+```
+
+```css
+/* Global styling */
+.custom-beam-style .beam-dot {
+  background-color: #ffcc00;
+  border: 2px solid #e74c3c;
+}
+
+.custom-beam-style .beam-inner-dot {
+  background-color: #2ecc71;
+  border-color: #27ae60;
+}
+```
+
+This CSS will style the dot at the start of the tracing beam with custom colors.
+
+## Contributing
+
+Contributions are welcome. Please submit a pull request or open an issue to discuss your ideas.
+
+## License
+
+This project is licensed under the MIT License.
