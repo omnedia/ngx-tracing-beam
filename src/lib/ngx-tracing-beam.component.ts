@@ -3,9 +3,9 @@ import {
   AfterViewInit,
   Component,
   ElementRef,
-  HostListener,
   Input,
   OnDestroy,
+  Renderer2,
   ViewChild,
 } from "@angular/core";
 
@@ -50,6 +50,9 @@ export class NgxTracingBeamComponent implements AfterViewInit, OnDestroy {
     return 1 - Math.pow(1 - t, 3);
   };
 
+  private scrollableParent: HTMLElement | Window = window;
+  private scrollListener!: () => void;
+
   private y1Target = 0;
   private y2Target = 0;
 
@@ -60,14 +63,16 @@ export class NgxTracingBeamComponent implements AfterViewInit, OnDestroy {
   private isInView = false;
   private intersectionObserver?: IntersectionObserver;
 
-  @HostListener("window:scroll", ["$event"])
+  /* @HostListener("window:scroll", ["$event"])
   onWindowScroll() {
     if (!this.isInView) {
       return;
     }
 
     this.updateBeamPosition();
-  }
+  } */
+
+  constructor(private renderer: Renderer2) {}
 
   ngAfterViewInit() {
     this.intersectionObserver = new IntersectionObserver(([entry]) => {
@@ -82,13 +87,45 @@ export class NgxTracingBeamComponent implements AfterViewInit, OnDestroy {
     window.addEventListener("resize", () => this.calculateSvgHeight());
 
     this.calculateSvgHeight();
+
+    this.determineScrollContext();
+    this.updateBeamPosition();
   }
 
   ngOnDestroy(): void {
+    this.removeScrollListener();
+
     window.removeEventListener("resize", () => this.calculateSvgHeight());
 
     if (this.intersectionObserver) {
       this.intersectionObserver.disconnect();
+    }
+  }
+
+  private determineScrollContext() {
+    let parent = this.wrapperRef.nativeElement.parentElement;
+    while (parent && parent !== document.body) {
+      const overflowY = window.getComputedStyle(parent).overflowY;
+      if (overflowY === "auto" || overflowY === "scroll") {
+        this.scrollableParent = parent;
+        break;
+      }
+      parent = parent.parentElement;
+    }
+    this.setupScrollListener();
+  }
+
+  private setupScrollListener() {
+    this.scrollListener = this.renderer.listen(
+      this.scrollableParent,
+      "scroll",
+      () => this.updateBeamPosition()
+    );
+  }
+
+  private removeScrollListener() {
+    if (this.scrollListener) {
+      this.scrollListener();
     }
   }
 
@@ -99,16 +136,23 @@ export class NgxTracingBeamComponent implements AfterViewInit, OnDestroy {
 
   private updateBeamPosition() {
     const rect = this.wrapperRef.nativeElement.getBoundingClientRect();
-    const topPosition = rect.top * -1;
+    const scrollHeight =
+      this.scrollableParent === window
+        ? window.innerHeight
+        : (this.scrollableParent as HTMLElement).clientHeight;
 
-    if (topPosition < 0) {
+    const topPosition =
+      this.scrollableParent === window
+        ? rect.top * -1
+        : (this.scrollableParent as HTMLElement).scrollTop;
+
+    let progress = (topPosition + scrollHeight) / rect.height;
+    progress = progress - (scrollHeight / rect.height) * (1 - progress);
+
+    if (topPosition <= 0) {
       this.setBeamPosition(0, 0);
       return;
     }
-
-    const windowHeight = window.innerHeight;
-    let progress = (topPosition + windowHeight) / rect.height;
-    progress = progress - (windowHeight / rect.height) * (1 - progress);
 
     if (topPosition >= rect.height) {
       this.setBeamPosition(rect.height, rect.height);
@@ -116,7 +160,7 @@ export class NgxTracingBeamComponent implements AfterViewInit, OnDestroy {
     }
 
     const newY2 = topPosition;
-    let newY1 = topPosition + windowHeight * progress - 50 * progress;
+    let newY1 = topPosition + scrollHeight * progress - 50 * progress;
 
     if (progress >= 1) {
       newY1 = rect.height;

@@ -99,6 +99,24 @@ Use the component in your template:
 
 This example creates a tracing beam with a red stroke and a blue-to-purple gradient that animates as the user scrolls through the content.
 
+## Smart Scroll Context
+
+When the om-tracing-beam is used in different scroll contexts, such as directly within the viewport or inside a nested scrollable element, it intelligently binds the scroll event listener to the nearest scrollable parent or defaults to the window if none is found. This ensures the beam's position is always calculated relative to the correct scroll context.
+<br>
+This example shows how you can integrate the tracing beam within a scrollable div to ensure it functions correctly across multiple environments:
+
+```html
+<div style="height: 700px; overflow-y: scroll;">
+  <om-tracing-beam styleClass="nested-scroll-context">
+    <div style="height: 2000px;">
+      <!-- Long content that makes the container scroll -->
+      <h1>Start of Content</h1>
+      <p>Content continues...</p>
+    </div>
+  </om-tracing-beam>
+</div>
+```
+
 ## Styling
 
 ```html
