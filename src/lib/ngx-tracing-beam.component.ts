@@ -1,10 +1,12 @@
-import { CommonModule } from "@angular/common";
+import {CommonModule, isPlatformBrowser} from "@angular/common";
 import {
   AfterViewInit,
   Component,
   ElementRef,
+  Inject,
   Input,
   OnDestroy,
+  PLATFORM_ID,
   Renderer2,
   ViewChild,
 } from "@angular/core";
@@ -72,17 +74,23 @@ export class NgxTracingBeamComponent implements AfterViewInit, OnDestroy {
     this.updateBeamPosition();
   } */
 
-  constructor(private renderer: Renderer2) {}
+  constructor(
+    private renderer: Renderer2,
+    @Inject(PLATFORM_ID) private platformId: object
+  ) {
+  }
 
   ngAfterViewInit() {
-    this.intersectionObserver = new IntersectionObserver(([entry]) => {
-      if (entry.isIntersecting && !this.isInView) {
-        this.isInView = true;
-      } else if (!entry.isIntersecting && this.isInView) {
-        this.isInView = false;
-      }
-    });
-    this.intersectionObserver.observe(this.wrapperRef.nativeElement);
+    if (isPlatformBrowser(this.platformId)) {
+      this.intersectionObserver = new IntersectionObserver(([entry]) => {
+        if (entry.isIntersecting && !this.isInView) {
+          this.isInView = true;
+        } else if (!entry.isIntersecting && this.isInView) {
+          this.isInView = false;
+        }
+      });
+      this.intersectionObserver.observe(this.wrapperRef.nativeElement);
+    }
 
     window.addEventListener("resize", () => this.calculateSvgHeight());
 
