@@ -1,6 +1,7 @@
 import {CommonModule, isPlatformBrowser} from "@angular/common";
 import {
   AfterViewInit,
+  ChangeDetectionStrategy,
   Component,
   ElementRef,
   Inject,
@@ -8,6 +9,7 @@ import {
   OnDestroy,
   PLATFORM_ID,
   Renderer2,
+  signal,
   ViewChild,
 } from "@angular/core";
 
@@ -17,6 +19,7 @@ import {
   imports: [CommonModule],
   templateUrl: "./ngx-tracing-beam.component.html",
   styleUrls: ["./ngx-tracing-beam.component.scss"],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class NgxTracingBeamComponent implements AfterViewInit, OnDestroy {
   @ViewChild("wrapperRef") wrapperRef!: ElementRef<HTMLElement>;
@@ -25,18 +28,18 @@ export class NgxTracingBeamComponent implements AfterViewInit, OnDestroy {
   @Input("styleClass")
   styleClass?: string;
 
-  style: any = {};
+  style = signal({});
 
   @Input("animationDuration")
   animationDuration = 500;
 
   @Input("strokeColor")
   set strokeColorValue(color: string) {
-    this.strokeColor = color;
-    this.style["--om-tracing-beam-stroke-color"] = color;
+    this.strokeColor.set(color);
+    this.style.update(prev => ({...prev, '--om-tracing-beam-stroke-color': color}));
   }
 
-  strokeColor = "#9091a04b";
+  strokeColor = signal("#9091a04b");
 
   @Input("gradientTop")
   gradientTop: string = "#AE48FF";
@@ -58,21 +61,13 @@ export class NgxTracingBeamComponent implements AfterViewInit, OnDestroy {
   private y1Target = 0;
   private y2Target = 0;
 
-  svgHeight: number = 0;
-  y1: number = 50;
-  y2: number = 50;
+  svgHeight = signal(0);
+  y1 = signal(50);
+  y2 = signal(50);
 
-  private isInView = false;
+  private isInView = signal(false);
   private intersectionObserver?: IntersectionObserver;
-
-  /* @HostListener("window:scroll", ["$event"])
-  onWindowScroll() {
-    if (!this.isInView) {
-      return;
-    }
-
-    this.updateBeamPosition();
-  } */
+  private animationFrameId?: number;
 
   constructor(
     private renderer: Renderer2,
@@ -83,10 +78,10 @@ export class NgxTracingBeamComponent implements AfterViewInit, OnDestroy {
   ngAfterViewInit() {
     if (isPlatformBrowser(this.platformId)) {
       this.intersectionObserver = new IntersectionObserver(([entry]) => {
-        if (entry.isIntersecting && !this.isInView) {
-          this.isInView = true;
-        } else if (!entry.isIntersecting && this.isInView) {
-          this.isInView = false;
+        if (entry.isIntersecting && !this.isInView()) {
+          this.isInView.set(true);
+        } else if (!entry.isIntersecting && this.isInView()) {
+          this.isInView.set(false);
         }
       });
       this.intersectionObserver.observe(this.wrapperRef.nativeElement);
@@ -138,43 +133,48 @@ export class NgxTracingBeamComponent implements AfterViewInit, OnDestroy {
   }
 
   private calculateSvgHeight() {
-    this.svgHeight = this.getOuterHeight(this.contentRef.nativeElement) - 16;
+    this.svgHeight.set(this.getOuterHeight(this.contentRef.nativeElement));
     this.updateBeamPosition();
   }
 
   private updateBeamPosition() {
-    const rect = this.wrapperRef.nativeElement.getBoundingClientRect();
-    const scrollHeight =
-      this.scrollableParent === window
-        ? window.innerHeight
-        : (this.scrollableParent as HTMLElement).clientHeight;
+    if (this.animationFrameId || !this.isInView()) return;
+    this.animationFrameId = requestAnimationFrame(() => {
+      this.animationFrameId = undefined;
 
-    const topPosition =
-      this.scrollableParent === window
-        ? rect.top * -1
-        : (this.scrollableParent as HTMLElement).scrollTop;
+      const rect = this.wrapperRef.nativeElement.getBoundingClientRect();
+      const scrollHeight =
+        this.scrollableParent === window
+          ? window.innerHeight
+          : (this.scrollableParent as HTMLElement).clientHeight;
 
-    let progress = (topPosition + scrollHeight) / rect.height;
-    progress = progress - (scrollHeight / rect.height) * (1 - progress);
+      const topPosition =
+        this.scrollableParent === window
+          ? rect.top * -1
+          : (this.scrollableParent as HTMLElement).scrollTop;
 
-    if (topPosition <= 0) {
-      this.setBeamPosition(0, 0);
-      return;
-    }
+      let progress = (topPosition + scrollHeight) / rect.height;
+      progress = progress - (scrollHeight / rect.height) * (1 - progress);
 
-    if (topPosition >= rect.height) {
-      this.setBeamPosition(rect.height, rect.height);
-      return;
-    }
+      if (topPosition <= 0) {
+        this.setBeamPosition(0, 0);
+        return;
+      }
 
-    const newY2 = topPosition;
-    let newY1 = topPosition + scrollHeight * progress - 50 * progress;
+      if (topPosition >= rect.height) {
+        this.setBeamPosition(rect.height, rect.height);
+        return;
+      }
 
-    if (progress >= 1) {
-      newY1 = rect.height;
-    }
+      const newY2 = topPosition;
+      let newY1 = topPosition + scrollHeight * progress - 50 * progress;
 
-    this.setBeamPosition(newY1, newY2);
+      if (progress >= 1) {
+        newY1 = rect.height;
+      }
+
+      this.setBeamPosition(newY1, newY2);
+    });
   }
 
   private setBeamPosition(y1: number, y2: number) {
@@ -187,8 +187,8 @@ export class NgxTracingBeamComponent implements AfterViewInit, OnDestroy {
   private animateBeamPosition() {
     const startTime = performance.now();
 
-    const initialY1 = this.y1;
-    const initialY2 = this.y2;
+    const initialY1 = this.y1();
+    const initialY2 = this.y2();
     const deltaY1 = this.y1Target - initialY1;
     const deltaY2 = this.y2Target - initialY2;
 
@@ -197,8 +197,8 @@ export class NgxTracingBeamComponent implements AfterViewInit, OnDestroy {
       const t = Math.min(elapsed / this.animationDuration, 1);
       const easedProgress = this.easingFunction(t);
 
-      this.y1 = initialY1 + deltaY1 * easedProgress;
-      this.y2 = initialY2 + deltaY2 * easedProgress;
+      this.y1.set(initialY1 + deltaY1 * easedProgress);
+      this.y2.set(initialY2 + deltaY2 * easedProgress);
 
       if (t < 1) {
         requestAnimationFrame(animate);
